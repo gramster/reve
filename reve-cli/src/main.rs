@@ -76,6 +76,7 @@ fn main() {
             video = Video::new(
                 &args.inputpath,
                 &args.outputpath,
+                &args.model,
                 args.segmentsize,
                 args.scale,
             );
@@ -114,6 +115,7 @@ fn main() {
         video = Video::new(
             &args.inputpath,
             &args.outputpath,
+            &args.model,
             args.segmentsize,
             args.scale,
         );

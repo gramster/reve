@@ -16,6 +16,7 @@ pub struct Segment {
 pub struct Video {
     pub path: String,
     pub output_path: String,
+    pub model: String,
     pub segments: Vec<Segment>,
     pub frame_rate: f32,
     pub frame_count: u32,
@@ -25,7 +26,7 @@ pub struct Video {
 }
 
 impl Video {
-    pub fn new(path: &str, output_path: &str, segment_size: u32, upscale_ratio: u8) -> Video {
+    pub fn new(path: &str, output_path: &str, model: &str, segment_size: u32, upscale_ratio: u8) -> Video {
         let frame_count = {
             let output = Command::new("mediainfo")
                 .arg("--Output=Video;%FrameCount%")
@@ -77,6 +78,7 @@ impl Video {
         Video {
             path: path.to_string(),
             output_path: output_path.to_string(),
+            model: model.to_string(),
             segments,
             frame_rate,
             frame_count,
@@ -138,7 +140,7 @@ impl Video {
                 "-o",
                 &output_path,
                 "-n",
-                "realesr-animevideov3-x2",
+                &self.model,
                 "-s",
                 &self.upscale_ratio.to_string(),
                 "-f",
@@ -236,6 +238,10 @@ pub struct Args {
     #[clap(short = 'p', long, value_parser = preset_validation, default_value = "slow")]
     pub preset: String,
 
+    /// model
+    #[clap(short = 'm', long, value_parser = model_validation, default_value = "realesr-animevideov3-x2")]
+    pub model: String,
+
     /// x265 encoding parameters
     #[clap(
     short = 'x',
@@ -277,6 +283,15 @@ fn preset_validation(s: &str) -> Result<String, String> {
         )
             .unwrap()),
     }
+}
+
+fn model_validation(s: &str) -> Result<String, String> {
+    let file: &str = &(format!("models\\{}.bin", s).to_string());
+    let p = Path::new(file);
+    if !p.exists() {
+        return Err(String::from_str("model not found").unwrap());
+    }
+    return Ok(s.to_string());
 }
 
 pub fn get_last_segment_size(frame_count: u32, segment_size: u32) -> u32 {
